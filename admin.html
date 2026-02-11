@@ -295,11 +295,21 @@
 
         // Авторизация
         function login() {
+            console.log('login() вызвана');
             const password = document.getElementById('passwordInput').value;
+            console.log('Введен пароль:', password ? 'есть' : 'пусто');
+            
             if (password === ADMIN_PASSWORD) {
+                console.log('Пароль верный!');
                 localStorage.setItem('muse_admin', 'true');
-                showDashboard();
+                try {
+                    showDashboard();
+                } catch (e) {
+                    console.error('Ошибка в showDashboard:', e);
+                    document.getElementById('loginError').textContent = '❌ Ошибка загрузки: ' + e.message;
+                }
             } else {
+                console.log('Пароль неверный');
                 document.getElementById('loginError').textContent = '❌ Неверный пароль';
             }
         }
@@ -310,14 +320,28 @@
         }
 
         function showDashboard() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboard').classList.add('active');
+            console.log('showDashboard() вызвана');
             
-            // Инициализация Supabase
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            
-            // Загружаем данные
-            loadOverviewData();
+            try {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('dashboard').classList.add('active');
+                
+                console.log('Проверяем window.supabase:', typeof window.supabase);
+                
+                // Инициализация Supabase
+                if (!window.supabase || !window.supabase.createClient) {
+                    throw new Error('Supabase SDK не загружен. Перезагрузи страницу.');
+                }
+                
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                console.log('✅ Supabase клиент создан');
+                
+                // Загружаем данные
+                loadOverviewData();
+            } catch (error) {
+                console.error('Ошибка в showDashboard:', error);
+                alert('Ошибка: ' + error.message + '\n\nПопробуй перезагрузить страницу.');
+            }
         }
 
         // Навигация по табам
