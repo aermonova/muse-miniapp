@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MUSE — Стилевой тест</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="screen active">
+            <div class="welcome-content">
+                <div class="logo">
+                    <h1 class="logo-text">MUSE</h1>
+                    <div class="logo-subtitle">Стилевой тест</div>
+                </div>
+                
+                <p class="welcome-description">
+                    За 2 минуты ты узнаешь свой стиль — и, возможно, 
+                    поймёшь о себе больше, чем за последние годы.
+                </p>
+                
+                <div class="intro-box">
+                    <p class="intro-text">
+                        Этот тест от создательницы канала MUSE, чтобы помочь тебе:<br>
+                        • избавиться от чувства «ничего не подходит»<br>
+                        • прекратить бессмысленные покупки<br>
+                        • найти стиль, в котором ты себе нравишься
+                    </p>
+                    <p class="gift-text">
+                        🎁 Пройди тест до конца — тебя ждет подарок: 
+                        формула, которая навсегда упростит твой стиль.
+                    </p>
+                </div>
+                
+                <button class="btn btn-primary" onclick="startTest()">
+                    ✨ Начать тест
+                </button>
+            </div>
+        </div>
+
+        <!-- Rules Screen -->
+        <div id="rulesScreen" class="screen">
+            <div class="rules-content">
+                <h2 class="screen-title">Правила простые</h2>
+                <p class="rules-text">
+                    Выбери вариант, который ближе по ощущениям — 
+                    не анализируй долго ✨
+                </p>
+                <button class="btn btn-primary" onclick="showFirstQuestion()">
+                    🚀 Начать тест
+                </button>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="questionScreen" class="screen">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <div id="progressText" class="progress-text">Вопрос 1 из 6</div>
+            </div>
+
+            <!-- Question Image -->
+            <div class="question-image-container">
+                <img id="questionImage" src="" alt="Question image" class="question-image">
+            </div>
+
+            <!-- Question Text -->
+            <h2 id="questionText" class="question-title"></h2>
+
+            <!-- Answer Options -->
+            <div id="answerOptions" class="answer-options"></div>
+
+            <!-- Navigation -->
+            <div class="navigation-buttons">
+                <button id="backButton" class="btn btn-secondary" onclick="previousQuestion()" style="display:none">
+                    ← Назад
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="resultScreen" class="screen">
+            <div class="result-content">
+                <div class="result-badge">Твой типаж</div>
+                <h1 id="resultTitle" class="result-title"></h1>
+                
+                <div id="resultImage" class="result-image-container"></div>
+                
+                <p id="resultDescription" class="result-description"></p>
+                
+                <div class="result-actions">
+                    <button class="btn btn-primary" onclick="shareResult()">
+                        📤 Поделиться результатом
+                    </button>
+                    <button class="btn btn-outline" onclick="openChannel()">
+                        📢 Перейти в канал MUSE
+                    </button>
+                    <button class="btn btn-secondary" onclick="restartTest()">
+                        🔄 Пройти тест заново
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
