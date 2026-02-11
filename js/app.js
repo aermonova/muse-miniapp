@@ -7,87 +7,6 @@ tg.expand();
 // tg.setBackgroundColor('#F5F1ED');
 // tg.setHeaderColor('#F5F1ED');
 
-// ====== SUPABASE ANALYTICS ======
-const SUPABASE_URL = 'https://ltqelpbiivubjcqjoweg.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWVscGJpaXZ1YmpjcWpvd2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MzM0NzAsImV4cCI6MjA4NjQwOTQ3MH0.THv2lqazDTxP3zMSW7lrRGNUerTsS028x15gmQ3Ji6c';
-
-// Инициализация Supabase клиента
-let supabase = null;
-try {
-    if (window.supabase && window.supabase.createClient) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        console.log('✅ Supabase initialized for Mini App');
-    } else {
-        console.warn('⚠️ Supabase SDK not loaded, analytics disabled');
-    }
-} catch (e) {
-    console.error('Failed to initialize Supabase:', e);
-}
-
-// Функция трекинга событий (неблокирующая)
-function trackEvent(eventType, eventData = {}) {
-    // Если Supabase не инициализирован, пропускаем трекинг
-    if (!supabase) {
-        return;
-    }
-    
-    // Запускаем трекинг асинхронно, чтобы не блокировать UI
-    setTimeout(async () => {
-        try {
-            const user = tg.initDataUnsafe?.user;
-            if (!user || !user.id) {
-                console.log('⚠️ No user data available for tracking');
-                return;
-            }
-            
-            // Создаем/обновляем пользователя
-            const { data: userData, error: userError } = await supabase
-                .from('users')
-                .upsert({
-                    telegram_id: user.id,
-                    username: user.username || null,
-                    first_name: user.first_name || null,
-                    last_active_at: new Date().toISOString()
-                }, {
-                    onConflict: 'telegram_id'
-                })
-                .select()
-                .single();
-            
-            if (userError) {
-                console.error('Error upserting user:', userError);
-                return;
-            }
-            
-            // Записываем событие
-            const { error: eventError } = await supabase
-                .from('events')
-                .insert({
-                    user_id: userData.id,
-                    event_type: eventType,
-                    event_data: eventData,
-                    platform: 'miniapp'
-                });
-            
-            if (eventError) {
-                console.error('Error tracking event:', eventError);
-            } else {
-                console.log(`📊 Event tracked: ${eventType}`);
-            }
-        } catch (error) {
-            console.error('Error in trackEvent:', error);
-            // Не пробрасываем ошибку дальше - трекинг не должен ломать приложение
-        }
-    }, 0);
-}
-
-// Трекаем открытие Mini App
-try {
-    trackEvent('miniapp_open');
-} catch (e) {
-    console.log('Tracking failed:', e);
-}
-
 // ====== ДАННЫЕ ТЕСТА ======
 const questions = [
     {
@@ -270,10 +189,6 @@ function startTest() {
 function showFirstQuestion() {
     currentQuestionIndex = 0;
     answers = [];
-    
-    // Трекаем начало теста
-    trackEvent('test_start');
-    
     showQuestion(currentQuestionIndex);
 }
 
@@ -335,12 +250,6 @@ function selectAnswer(value) {
     
     answers[currentQuestionIndex] = value;
     
-    // Трекаем ответ на вопрос
-    trackEvent('test_step', {
-        question: currentQuestionIndex + 1,
-        answer: value
-    });
-    
     if (currentQuestionIndex < questions.length - 1) {
         currentQuestionIndex++;
         showQuestion(currentQuestionIndex);
@@ -393,9 +302,6 @@ function showResult() {
     
     // Сохраняем результат в localStorage
     localStorage.setItem('muse_archetype', resultType);
-    
-    // Трекаем завершение теста
-    trackEvent('test_complete', { result: resultType });
     
     // Отправляем результат обратно в бот (опционально)
     try {
@@ -730,9 +636,6 @@ function switchTab(tabName) {
         document.getElementById('librarySection').classList.add('active');
         document.querySelector('.navigation-tabs').classList.remove('tabs-hidden');
         
-        // Трекаем открытие библиотеки
-        trackEvent('library_open');
-        
         if (!window.libraryInitialized) {
             initLibrary();
             window.libraryInitialized = true;
@@ -743,10 +646,6 @@ function switchTab(tabName) {
         console.log('archetypeSection найдена:', archetypeSection);
         archetypeSection.classList.add('active');
         document.querySelector('.navigation-tabs').classList.remove('tabs-hidden');
-        
-        // Трекаем открытие "Мой типаж"
-        trackEvent('my_type_open');
-        
         showArchetypeSection();
     }
 }
@@ -799,11 +698,6 @@ function filterLibrary(filter) {
 }
 
 function openLink(url, title = '') {
-    // Трекаем клик по карточке в библиотеке
-    if (title) {
-        trackEvent('library_click', { title: title, url: url });
-    }
-    
     if (url.includes('t.me')) {
         tg.openTelegramLink(url);
     } else {
@@ -881,9 +775,6 @@ function shareArchetypeResult() {
     
     const archetype = archetypeData[savedArchetype];
     if (!archetype) return;
-    
-    // Трекаем клик по "Поделиться"
-    trackEvent('share_click', { archetype: savedArchetype });
     
     const shareText = `✨ Я прошла тест типажей MUSE и узнала, что я — ${archetype.name}! ${archetype.tagline}\n\nПройди тест сама: @musenew_bot 💫`;
     
