@@ -165,6 +165,20 @@ function showScreen(screenId, direction = 'right') {
             isAnimating = false;
         }, 500);
     }, currentScreen ? 400 : 0);
+
+    // Табы показываем только на приветствии; во время теста скрываем
+    updateTabBarVisibility(screenId);
+}
+
+function updateTabBarVisibility(currentScreenId) {
+    const tabs = document.querySelector('.navigation-tabs');
+    if (!tabs) return;
+    const hideTabsDuringTest = (currentScreenId === 'rulesScreen') || (currentScreenId === 'questionScreen');
+    if (hideTabsDuringTest) {
+        tabs.classList.add('tabs-hidden');
+    } else {
+        tabs.classList.remove('tabs-hidden');
+    }
 }
 
 // ====== НАЧАЛО ТЕСТА ======
@@ -463,16 +477,17 @@ function switchTab(tabName) {
     });
     document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
     
-    // Показываем нужную секцию
+    // Показываем только одну секцию — вторая всегда скрыта
     document.querySelectorAll('.section').forEach(section => {
         section.classList.remove('active');
     });
     
     if (tabName === 'test') {
         document.getElementById('testSection').classList.add('active');
+        document.querySelector('.navigation-tabs').classList.remove('tabs-hidden');
     } else if (tabName === 'library') {
         document.getElementById('librarySection').classList.add('active');
-        // Инициализируем библиотеку при первом открытии
+        document.querySelector('.navigation-tabs').classList.remove('tabs-hidden');
         if (!window.libraryInitialized) {
             initLibrary();
             window.libraryInitialized = true;
@@ -540,9 +555,10 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('MUSE Mini App загружена');
     console.log('Telegram WebApp version:', tg.version);
     
-    // Показываем welcome screen при загрузке
-    showScreen('welcomeScreen');
-    
-    // Активируем секцию теста по умолчанию
+    // Только секция теста активна; библиотека скрыта
     document.getElementById('testSection').classList.add('active');
+    document.getElementById('librarySection').classList.remove('active');
+    
+    showScreen('welcomeScreen');
+    updateTabBarVisibility('welcomeScreen');
 });

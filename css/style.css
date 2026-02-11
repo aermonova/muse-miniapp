@@ -1,22 +1,25 @@
 /* ====== ПЕРЕМЕННЫЕ ====== */
 :root {
-    --color-bg: #FAF6F1;           /* Основной фон - тёплый кремовый */
-    --color-card: #FFFFFF;         /* Карточки */
-    --color-accent: #C4A882;       /* Акцент - тёплое золото */
-    --color-text: #2D2421;         /* Текст основной - тёмно-коричневый */
-    --color-text-light: #8C7B6B;   /* Текст второстепенный */
-    --color-btn: #2D2421;          /* Кнопки */
-    --color-chip-active: #2D2421;  /* Фильтры активные */
-    --color-chip-inactive: #F0EBE5; /* Фильтры неактивные */
+    --color-bg: #EDE8E1;           /* Фон - тёплый бежевый как на лого */
+    --color-card: #FAF7F3;         /* Карточки - светло-сливочный */
+    --color-accent: #B8A48C;       /* Акцент - тёплый песочно-коричневый */
+    --color-accent-dark: #6B5B4E;  /* Акцент тёмный - для заголовков */
+    --color-accent-light: #D4C8B8; /* Акцент светлый - для неактивных элементов */
+    --color-text: #3D3229;         /* Текст основной - тёмно-коричневый тёплый */
+    --color-text-light: #9C8E7E;   /* Текст второстепенный - бежево-серый */
+    --color-btn-gradient-start: #B8A48C; /* Градиент кнопки начало */
+    --color-btn-gradient-end: #A08E78;   /* Градиент кнопки конец */
+    --color-chip-active: #3D3229;  /* Фильтры активные */
+    --color-chip-inactive: #EDE8E1; /* Фильтры неактивные */
     
     --font-heading: 'Cormorant Garamond', serif;
     --font-body: 'Montserrat', sans-serif;
     
     --transition-smooth: all 0.3s ease;
-    --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.06);
-    --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.08);
-    --radius-card: 16px;
-    --radius-btn: 24px;
+    --shadow-soft: 0 4px 16px rgba(61, 50, 41, 0.08);
+    --shadow-medium: 0 8px 24px rgba(61, 50, 41, 0.12);
+    --radius-card: 20px;
+    --radius-btn: 28px;
 }
 
 /* ====== ГЛОБАЛЬНЫЕ СТИЛИ ====== */
@@ -28,7 +31,7 @@
 
 body {
     font-family: var(--font-body);
-    background: var(--color-bg);
+    background: linear-gradient(135deg, #EDE8E1 0%, #F5F0EA 50%, #EDE8E1 100%);
     color: var(--color-text);
     min-height: 100vh;
     overflow-x: hidden;
@@ -43,27 +46,39 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--color-card);
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
     display: flex;
-    justify-content: space-around;
-    padding: 12px 0;
+    gap: 12px;
+    padding: 12px 20px;
     z-index: 1000;
+    max-width: 600px;
+    margin: 0 auto;
 }
 
 .tab {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 8px 24px;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 16px;
     cursor: pointer;
     transition: var(--transition-smooth);
     color: var(--color-text-light);
+    background: var(--color-card);
+    border-radius: var(--radius-btn);
+    box-shadow: var(--shadow-soft);
+    border: 2px solid transparent;
+}
+
+.tab:hover {
+    box-shadow: var(--shadow-medium);
 }
 
 .tab.active {
-    color: var(--color-accent);
+    color: #FAF7F3;
+    background: linear-gradient(135deg, var(--color-btn-gradient-start), var(--color-btn-gradient-end));
+    border-color: var(--color-accent-dark);
 }
 
 .tab-icon {
@@ -71,17 +86,22 @@ body {
 }
 
 .tab-label {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 500;
 }
 
 /* ====== СЕКЦИИ ====== */
 .section {
-    display: none;
+    display: none !important;
 }
 
 .section.active {
     display: block !important;
+}
+
+/* Табы скрыты во время теста (правила, вопросы, результат) */
+.navigation-tabs.tabs-hidden {
+    display: none !important;
 }
 
 .app-container {
@@ -135,64 +155,34 @@ body {
 
 /* ====== WELCOME SCREEN ====== */
 .welcome-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: 40px 0;
+    min-height: 80vh;
+    padding: 40px 20px;
 }
 
 .logo {
-    margin-bottom: 40px;
+    margin-bottom: 60px;
 }
 
-.logo-text {
-    font-family: var(--font-heading);
-    font-size: 72px;
-    font-weight: 300;
-    letter-spacing: 8px;
-    color: var(--color-accent);
-    margin-bottom: 8px;
-    text-transform: uppercase;
+.logo-image {
+    width: 100%;
+    height: auto;
+    margin-bottom: 24px;
+    border-radius: 25%;
+    filter: drop-shadow(0 4px 20px rgba(184, 164, 140, 0.2));
 }
 
 .logo-subtitle {
     font-family: var(--font-body);
-    font-size: 14px;
-    font-weight: 300;
-    letter-spacing: 3px;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 2px;
     color: var(--color-text-light);
-    text-transform: uppercase;
-}
-
-.welcome-description {
-    font-size: 18px;
-    line-height: 1.8;
-    color: var(--color-text);
-    margin: 30px 0;
-    font-weight: 300;
-}
-
-.intro-box {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 30px;
-    margin: 30px 0;
-    box-shadow: var(--shadow-soft);
-    text-align: left;
-}
-
-.intro-text {
-    font-size: 15px;
-    line-height: 1.8;
-    color: var(--color-text);
-    margin-bottom: 20px;
-}
-
-.gift-text {
-    font-size: 15px;
-    line-height: 1.8;
-    color: var(--color-accent);
-    padding-top: 15px;
-    border-top: 1px solid rgba(212, 165, 154, 0.3);
+    text-transform: lowercase;
 }
 
 /* ====== RULES SCREEN ====== */
@@ -205,7 +195,7 @@ body {
     font-family: var(--font-heading);
     font-size: 42px;
     font-weight: 400;
-    color: var(--color-accent);
+    color: var(--color-accent-dark);
     margin-bottom: 30px;
 }
 
@@ -225,7 +215,7 @@ body {
 .progress-bar {
     width: 100%;
     height: 4px;
-    background: rgba(212, 165, 154, 0.2);
+    background: var(--color-accent-light);
     border-radius: 10px;
     overflow: hidden;
     margin-bottom: 12px;
@@ -233,7 +223,7 @@ body {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+    background: linear-gradient(90deg, var(--color-accent), var(--color-accent-dark));
     border-radius: 10px;
     transition: width 0.5s ease;
 }
@@ -270,7 +260,7 @@ body {
     font-family: var(--font-heading);
     font-size: 28px;
     font-weight: 400;
-    color: var(--color-dark);
+    color: var(--color-text);
     margin-bottom: 30px;
     line-height: 1.4;
     text-align: center;
@@ -321,7 +311,7 @@ body {
 
 .result-badge {
     display: inline-block;
-    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
     color: white;
     padding: 8px 20px;
     border-radius: 20px;
@@ -336,7 +326,7 @@ body {
     font-family: var(--font-heading);
     font-size: 56px;
     font-weight: 400;
-    color: var(--color-accent);
+    color: var(--color-accent-dark);
     margin-bottom: 30px;
     line-height: 1.2;
 }
@@ -362,10 +352,9 @@ body {
     color: var(--color-text);
     margin-bottom: 40px;
     text-align: left;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(10px);
+    background: var(--color-card);
     padding: 30px;
-    border-radius: 20px;
+    border-radius: var(--radius-card);
     box-shadow: var(--shadow-soft);
 }
 
@@ -392,13 +381,14 @@ body {
 }
 
 .btn-primary {
-    background: var(--color-btn);
+    background: linear-gradient(135deg, var(--color-btn-gradient-start), var(--color-btn-gradient-end));
     color: white;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-medium);
+    background: linear-gradient(135deg, #C4B09A, var(--color-btn-gradient-start));
 }
 
 .btn-primary:active {
@@ -406,15 +396,15 @@ body {
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
+    background: var(--color-card);
     color: var(--color-text);
-    border: 2px solid var(--color-secondary);
+    border: 2px solid var(--color-accent-light);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: var(--color-primary);
+    background: var(--color-accent-light);
+    border-color: var(--color-accent);
+    color: var(--color-text);
 }
 
 .btn-outline {
@@ -524,7 +514,7 @@ body {
 
 .filter-chip.active {
     background: var(--color-chip-active);
-    color: white;
+    color: #FAF7F3;
 }
 
 .filter-chip:hover {
