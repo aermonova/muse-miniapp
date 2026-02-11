@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUSE Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .login-box h1 {
+            margin-bottom: 24px;
+            color: #333;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-box button:hover {
+            background: #5568d3;
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.active {
+            display: block;
+        }
+
+        header {
+            background: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .nav-tabs {
+            background: white;
+            padding: 0 40px;
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .nav-tab {
+            padding: 16px 24px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: 0.3s;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .nav-tab:hover {
+            color: #667eea;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .content {
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 12px 0;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-change {
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .stat-change.positive {
+            color: #27ae60;
+        }
+
+        .stat-change.negative {
+            color: #e74c3c;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+
+        .chart-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        canvas {
+            max-height: 400px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <h1>🔐 MUSE Admin</h1>
+            <input type="password" id="passwordInput" placeholder="Введи пароль" />
+            <button onclick="login()">Войти</button>
+            <div id="loginError" class="error"></div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard">
+        <header>
+            <h1>📊 MUSE Analytics Dashboard</h1>
+            <button class="logout-btn" onclick="logout()">Выйти</button>
+        </header>
+
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="showTab('overview')">Обзор</div>
+            <div class="nav-tab" onclick="showTab('funnel')">Воронка теста</div>
+            <div class="nav-tab" onclick="showTab('archetypes')">Типажи</div>
+            <div class="nav-tab" onclick="showTab('library')">Библиотека</div>
+        </div>
+
+        <div class="content">
+            <!-- Overview Tab -->
+            <div id="overviewTab" class="tab-content active">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Загрузка данных...</p>
+                </div>
+            </div>
+
+            <!-- Funnel Tab -->
+            <div id="funnelTab" class="tab-content">
+                <div class="chart-container">
+                    <h2>📉 Воронка теста</h2>
+                    <canvas id="funnelChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Archetypes Tab -->
+            <div id="archetypesTab" class="tab-content">
+                <div class="chart-container">
+                    <h2>🎨 Распределение по типажам</h2>
+                    <canvas id="archetypesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Library Tab -->
+            <div id="libraryTab" class="tab-content">
+                <div class="chart-container">
+                    <h2>📚 Популярные карточки библиотеки</h2>
+                    <p style="color: #999;">Данные появятся после добавления трекинга в Mini App</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Конфигурация
+        const ADMIN_PASSWORD = 'muse2026';  // Измени на свой пароль!
+        const SUPABASE_URL = 'https://ltqelpbiivubjcqjoweg.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWVscGJpaXZ1YmpjcWpvd2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MzM0NzAsImV4cCI6MjA4NjQwOTQ3MH0.THv2lqazDTxP3zMSW7lrRGNUerTsS028x15gmQ3Ji6c';
+
+        let supabase;
+
+        // Авторизация
+        function login() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === ADMIN_PASSWORD) {
+                localStorage.setItem('muse_admin', 'true');
+                showDashboard();
+            } else {
+                document.getElementById('loginError').textContent = '❌ Неверный пароль';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('muse_admin');
+            location.reload();
+        }
+
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboard').classList.add('active');
+            
+            // Инициализация Supabase
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            
+            // Загружаем данные
+            loadOverviewData();
+        }
+
+        // Навигация по табам
+        function showTab(tabName) {
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            if (tabName === 'funnel') loadFunnelData();
+            if (tabName === 'archetypes') loadArchetypesData();
+        }
+
+        // Загрузка данных для Overview
+        async function loadOverviewData() {
+            try {
+                // Получаем данные
+                const { data: users } = await supabase.from('users').select('*');
+                const { data: events } = await supabase.from('events').select('*');
+                const { data: tests } = await supabase.from('test_sessions').select('*');
+                
+                const now = new Date();
+                const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const weekAgo = new Date(today - 7 * 24 * 60 * 60 * 1000);
+                
+                // Подсчитываем метрики
+                const totalUsers = users.length;
+                const newToday = users.filter(u => new Date(u.joined_at) >= today).length;
+                const newWeek = users.filter(u => new Date(u.joined_at) >= weekAgo).length;
+                const activeToday = users.filter(u => new Date(u.last_active_at) >= today).length;
+                
+                const totalTests = tests.length;
+                const completedTests = tests.filter(t => t.completed_at).length;
+                const conversionRate = totalTests > 0 ? Math.round(completedTests / totalTests * 100) : 0;
+                
+                // Отображаем
+                const overviewHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Всего пользователей</div>
+                            <div class="stat-value">${totalUsers}</div>
+                            <div class="stat-change positive">+${newToday} сегодня</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Новых за неделю</div>
+                            <div class="stat-value">${newWeek}</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Активных сегодня</div>
+                            <div class="stat-value">${activeToday}</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Всего событий</div>
+                            <div class="stat-value">${events.length}</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Начали тест</div>
+                            <div class="stat-value">${totalTests}</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Завершили тест</div>
+                            <div class="stat-value">${completedTests}</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-label">Конверсия теста</div>
+                            <div class="stat-value">${conversionRate}%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h2>📈 События по типам</h2>
+                        <canvas id="eventsChart"></canvas>
+                    </div>
+                `;
+                
+                document.getElementById('overviewTab').innerHTML = overviewHTML;
+                
+                // График событий
+                const eventTypes = {};
+                events.forEach(e => {
+                    eventTypes[e.event_type] = (eventTypes[e.event_type] || 0) + 1;
+                });
+                
+                new Chart(document.getElementById('eventsChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(eventTypes),
+                        datasets: [{
+                            label: 'Количество событий',
+                            data: Object.values(eventTypes),
+                            backgroundColor: 'rgba(102, 126, 234, 0.5)',
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('overviewTab').innerHTML = '<p class="error">Ошибка загрузки данных</p>';
+            }
+        }
+
+        // Загрузка воронки
+        async function loadFunnelData() {
+            try {
+                const { data: tests } = await supabase.from('test_sessions').select('*');
+                
+                const steps = {
+                    'Начали тест': tests.length,
+                    'Вопрос 1': tests.filter(t => t.current_step >= 1).length,
+                    'Вопрос 2': tests.filter(t => t.current_step >= 2).length,
+                    'Вопрос 3': tests.filter(t => t.current_step >= 3).length,
+                    'Вопрос 4': tests.filter(t => t.current_step >= 4).length,
+                    'Вопрос 5': tests.filter(t => t.current_step >= 5).length,
+                    'Вопрос 6': tests.filter(t => t.current_step >= 6).length,
+                    'Завершили': tests.filter(t => t.completed_at).length
+                };
+                
+                const percentages = Object.values(steps).map(val => 
+                    tests.length > 0 ? Math.round(val / tests.length * 100) : 0
+                );
+                
+                new Chart(document.getElementById('funnelChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(steps),
+                        datasets: [{
+                            label: 'Пользователей',
+                            data: Object.values(steps),
+                            backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const idx = context.dataIndex;
+                                        return `${context.parsed.x} чел. (${percentages[idx]}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading funnel:', error);
+            }
+        }
+
+        // Загрузка типажей
+        async function loadArchetypesData() {
+            try {
+                const { data: tests } = await supabase
+                    .from('test_sessions')
+                    .select('result')
+                    .not('result', 'is', null);
+                
+                const archetypes = {
+                    'warm': 0, 'clean': 0, 'soft': 0,
+                    'form': 0, 'ice': 0, 'classic': 0
+                };
+                
+                tests.forEach(t => {
+                    if (archetypes.hasOwnProperty(t.result)) {
+                        archetypes[t.result]++;
+                    }
+                });
+                
+                const names = {
+                    'warm': 'Warm Girl',
+                    'clean': 'Clean Girl',
+                    'soft': 'Soft Girl',
+                    'form': 'The Form',
+                    'ice': 'Ice Lady',
+                    'classic': 'Classic'
+                };
+                
+                new Chart(document.getElementById('archetypesChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(archetypes).map(k => names[k]),
+                        datasets: [{
+                            data: Object.values(archetypes),
+                            backgroundColor: [
+                                '#EB9605', // warm
+                                '#EDE4DA', // clean
+                                '#FBCEB1', // soft
+                                '#7B4B3A', // form
+                                '#4A4B56', // ice
+                                '#141B4D'  // classic
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading archetypes:', error);
+            }
+        }
+
+        // Проверка авторизации при загрузке
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem('muse_admin') === 'true') {
+                showDashboard();
+            }
+            
+            // Enter для логина
+            document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') login();
+            });
+        });
+    </script>
+</body>
+</html>
