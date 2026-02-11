@@ -291,7 +291,7 @@
         const SUPABASE_URL = 'https://ltqelpbiivubjcqjoweg.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWVscGJpaXZ1YmpjcWpvd2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MzM0NzAsImV4cCI6MjA4NjQwOTQ3MH0.THv2lqazDTxP3zMSW7lrRGNUerTsS028x15gmQ3Ji6c';
 
-        let supabase;
+        let supabaseClient;
 
         // Авторизация
         function login() {
@@ -333,7 +333,7 @@
                     throw new Error('Supabase SDK не загружен. Перезагрузи страницу.');
                 }
                 
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 console.log('✅ Supabase клиент создан');
                 
                 // Загружаем данные
@@ -360,9 +360,9 @@
         async function loadOverviewData() {
             try {
                 // Получаем данные
-                const { data: users } = await supabase.from('users').select('*');
-                const { data: events } = await supabase.from('events').select('*');
-                const { data: tests } = await supabase.from('test_sessions').select('*');
+                const { data: users } = await supabaseClient.from('users').select('*');
+                const { data: events } = await supabaseClient.from('events').select('*');
+                const { data: tests } = await supabaseClient.from('test_sessions').select('*');
                 
                 const now = new Date();
                 const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -461,7 +461,7 @@
         // Загрузка воронки
         async function loadFunnelData() {
             try {
-                const { data: tests } = await supabase.from('test_sessions').select('*');
+                const { data: tests } = await supabaseClient.from('test_sessions').select('*');
                 
                 const steps = {
                     'Начали тест': tests.length,
@@ -514,7 +514,7 @@
         // Загрузка типажей
         async function loadArchetypesData() {
             try {
-                const { data: tests } = await supabase
+                const { data: tests } = await supabaseClient
                     .from('test_sessions')
                     .select('result')
                     .not('result', 'is', null);
