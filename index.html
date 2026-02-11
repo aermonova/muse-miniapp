@@ -21,6 +21,10 @@
             <div class="tab-icon">📚</div>
             <div class="tab-label">Библиотека</div>
         </div>
+        <div class="tab" data-tab="archetype" onclick="switchTab('archetype')">
+            <div class="tab-icon">💫</div>
+            <div class="tab-label">Мой типаж</div>
+        </div>
     </div>
 
     <!-- Test Section -->
@@ -124,6 +128,60 @@
 
             <!-- Content Cards -->
             <div id="libraryCards" class="library-cards"></div>
+        </div>
+    </div>
+
+    <!-- My Archetype Section -->
+    <div id="archetypeSection" class="section">
+        <div class="archetype-container">
+            <!-- Prompt to take test (if not completed) -->
+            <div id="archetypePrompt" class="archetype-prompt">
+                <h2 class="prompt-title">Пройди тест, чтобы узнать свой типаж</h2>
+                <button class="btn btn-primary" onclick="switchTab('test')">
+                    ✨ Пройти тест
+                </button>
+            </div>
+
+            <!-- Archetype page (if test completed) -->
+            <div id="archetypePage" class="archetype-page" style="display:none;">
+                <!-- Header -->
+                <div class="archetype-header">
+                    <div class="archetype-badge">Твой типаж</div>
+                    <h1 id="archetypeTitle" class="archetype-title"></h1>
+                    <p id="archetypeTagline" class="archetype-tagline"></p>
+                </div>
+
+                <!-- Description -->
+                <div class="archetype-block">
+                    <p id="archetypeDescription" class="archetype-description"></p>
+                    <div id="archetypeVibe" class="archetype-vibe-badge"></div>
+                </div>
+
+                <!-- Color Palette -->
+                <div class="archetype-block">
+                    <h3 class="block-title">Твоя палитра</h3>
+                    <div id="colorPalette" class="color-palette"></div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="archetype-block">
+                    <h3 class="block-title">Что тебе идёт</h3>
+                    <div id="recommendations" class="recommendations-grid"></div>
+                </div>
+
+                <!-- Actions -->
+                <div class="archetype-actions">
+                    <button class="btn btn-primary" onclick="shareArchetypeResult()">
+                        📤 Поделиться результатом
+                    </button>
+                    <button class="btn btn-outline" onclick="openArchetypePost()">
+                        📖 Читать про свой типаж
+                    </button>
+                    <button class="btn btn-secondary" onclick="retakeTest()">
+                        🔄 Пройти тест заново
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
