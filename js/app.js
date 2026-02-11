@@ -12,59 +12,81 @@ const SUPABASE_URL = 'https://ltqelpbiivubjcqjoweg.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWVscGJpaXZ1YmpjcWpvd2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MzM0NzAsImV4cCI6MjA4NjQwOTQ3MH0.THv2lqazDTxP3zMSW7lrRGNUerTsS028x15gmQ3Ji6c';
 
 // Инициализация Supabase клиента
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-console.log('✅ Supabase initialized for Mini App');
-
-// Функция трекинга событий
-async function trackEvent(eventType, eventData = {}) {
-    try {
-        const user = tg.initDataUnsafe?.user;
-        if (!user) {
-            console.log('⚠️ No user data available for tracking');
-            return;
-        }
-        
-        // Создаем/обновляем пользователя
-        const { data: userData, error: userError } = await supabase
-            .from('users')
-            .upsert({
-                telegram_id: user.id,
-                username: user.username || null,
-                first_name: user.first_name || null,
-                last_active_at: new Date().toISOString()
-            }, {
-                onConflict: 'telegram_id'
-            })
-            .select()
-            .single();
-        
-        if (userError) {
-            console.error('Error upserting user:', userError);
-            return;
-        }
-        
-        // Записываем событие
-        const { error: eventError } = await supabase
-            .from('events')
-            .insert({
-                user_id: userData.id,
-                event_type: eventType,
-                event_data: eventData,
-                platform: 'miniapp'
-            });
-        
-        if (eventError) {
-            console.error('Error tracking event:', eventError);
-        } else {
-            console.log(`📊 Event tracked: ${eventType}`);
-        }
-    } catch (error) {
-        console.error('Error in trackEvent:', error);
+let supabase = null;
+try {
+    if (window.supabase && window.supabase.createClient) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log('✅ Supabase initialized for Mini App');
+    } else {
+        console.warn('⚠️ Supabase SDK not loaded, analytics disabled');
     }
+} catch (e) {
+    console.error('Failed to initialize Supabase:', e);
+}
+
+// Функция трекинга событий (неблокирующая)
+function trackEvent(eventType, eventData = {}) {
+    // Если Supabase не инициализирован, пропускаем трекинг
+    if (!supabase) {
+        return;
+    }
+    
+    // Запускаем трекинг асинхронно, чтобы не блокировать UI
+    setTimeout(async () => {
+        try {
+            const user = tg.initDataUnsafe?.user;
+            if (!user || !user.id) {
+                console.log('⚠️ No user data available for tracking');
+                return;
+            }
+            
+            // Создаем/обновляем пользователя
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .upsert({
+                    telegram_id: user.id,
+                    username: user.username || null,
+                    first_name: user.first_name || null,
+                    last_active_at: new Date().toISOString()
+                }, {
+                    onConflict: 'telegram_id'
+                })
+                .select()
+                .single();
+            
+            if (userError) {
+                console.error('Error upserting user:', userError);
+                return;
+            }
+            
+            // Записываем событие
+            const { error: eventError } = await supabase
+                .from('events')
+                .insert({
+                    user_id: userData.id,
+                    event_type: eventType,
+                    event_data: eventData,
+                    platform: 'miniapp'
+                });
+            
+            if (eventError) {
+                console.error('Error tracking event:', eventError);
+            } else {
+                console.log(`📊 Event tracked: ${eventType}`);
+            }
+        } catch (error) {
+            console.error('Error in trackEvent:', error);
+            // Не пробрасываем ошибку дальше - трекинг не должен ломать приложение
+        }
+    }, 0);
 }
 
 // Трекаем открытие Mini App
-trackEvent('miniapp_open');
+try {
+    trackEvent('miniapp_open');
+} catch (e) {
+    console.log('Tracking failed:', e);
+}
 
 // ====== ДАННЫЕ ТЕСТА ======
 const questions = [
