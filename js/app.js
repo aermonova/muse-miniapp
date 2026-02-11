@@ -339,6 +339,202 @@ function restartTest() {
     showScreen('welcomeScreen');
 }
 
+// ====== ДАННЫЕ БИБЛИОТЕКИ ======
+const libraryData = {
+    sections: [
+        {
+            id: "useful",
+            name: "Полезное",
+            items: [
+                {
+                    emoji: "💎",
+                    title: "6 женских типажей",
+                    url: "https://t.me/muse_stylee/1268"
+                },
+                {
+                    emoji: "📸",
+                    title: "Разбор стиля и типажа читательниц",
+                    url: "https://t.me/muse_stylee/27"
+                },
+                {
+                    emoji: "✨",
+                    title: "Какие проблемы решит знание типажа",
+                    url: "https://t.me/muse_stylee/895"
+                },
+                {
+                    emoji: "🎨",
+                    title: "Как адаптировать любой типаж под себя",
+                    url: "https://t.me/muse_stylee/902"
+                },
+                {
+                    emoji: "💫",
+                    title: "Зачем и как использовать типаж",
+                    url: "https://t.me/muse_stylee/772"
+                }
+            ]
+        },
+        {
+            id: "archetypes",
+            name: "Про типажи",
+            items: [
+                {
+                    emoji: "🌸",
+                    title: "Ошибки типажа The Form",
+                    url: "https://t.me/muse_stylee/795"
+                },
+                {
+                    emoji: "👔",
+                    title: "Ошибки типажа Classic",
+                    url: "https://t.me/muse_stylee/813"
+                },
+                {
+                    emoji: "☕️",
+                    title: "Ошибки типажа Warm Girl",
+                    url: "https://t.me/muse_stylee/833"
+                }
+            ]
+        },
+        {
+            id: "fun",
+            name: "For fun",
+            items: [
+                {
+                    emoji: "👑",
+                    title: "Типажи из «Сплетница»",
+                    url: "https://t.me/muse_stylee/1067"
+                },
+                {
+                    emoji: "👠",
+                    title: "Типажи из «Секс в большом городе»",
+                    url: "https://t.me/muse_stylee/944"
+                },
+                {
+                    emoji: "🐉",
+                    title: "Типажи из «Игра престолов»",
+                    url: "https://t.me/muse_stylee/847"
+                },
+                {
+                    emoji: "🏡",
+                    title: "Типажи из «Отчаянные домохозяйки»",
+                    url: "https://t.me/muse_stylee/750"
+                },
+                {
+                    emoji: "💄",
+                    title: "Типажи из «Милые обманщицы»",
+                    url: "https://t.me/muse_stylee/1251"
+                }
+            ]
+        },
+        {
+            id: "celebrities",
+            name: "Знаменитости",
+            items: [
+                {
+                    emoji: "✨",
+                    title: "Стиль Сары Джессики Паркер",
+                    url: "https://t.me/muse_stylee/928"
+                },
+                {
+                    emoji: "🖤",
+                    title: "Стиль Кендалл Дженнер",
+                    url: "https://t.me/muse_stylee/1094"
+                }
+            ]
+        },
+        {
+            id: "store",
+            name: "Muse Store",
+            items: [
+                {
+                    emoji: "🛍",
+                    title: "Купить lookbook по типажу",
+                    url: "https://musestyle.store/page4"
+                }
+            ]
+        }
+    ]
+};
+
+// ====== ФУНКЦИИ НАВИГАЦИИ ======
+function switchTab(tabName) {
+    // Обновляем активный таб
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Показываем нужную секцию
+    document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    if (tabName === 'test') {
+        document.getElementById('testSection').classList.add('active');
+    } else if (tabName === 'library') {
+        document.getElementById('librarySection').classList.add('active');
+        // Инициализируем библиотеку при первом открытии
+        if (!window.libraryInitialized) {
+            initLibrary();
+            window.libraryInitialized = true;
+        }
+    }
+}
+
+// ====== ФУНКЦИИ БИБЛИОТЕКИ ======
+function initLibrary() {
+    renderLibraryCards('all');
+}
+
+function renderLibraryCards(filter = 'all') {
+    const cardsContainer = document.getElementById('libraryCards');
+    cardsContainer.innerHTML = '';
+    
+    libraryData.sections.forEach(section => {
+        // Фильтруем секции
+        if (filter !== 'all' && section.id !== filter) {
+            return;
+        }
+        
+        // Добавляем карточки из секции
+        section.items.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'content-card';
+            card.dataset.section = section.id;
+            card.onclick = () => openLink(item.url);
+            
+            card.innerHTML = `
+                <div class="card-emoji">${item.emoji}</div>
+                <div class="card-content">
+                    <div class="card-title">${item.title}</div>
+                    <div class="card-section">${section.name}</div>
+                </div>
+                <div class="card-arrow">→</div>
+            `;
+            
+            cardsContainer.appendChild(card);
+        });
+    });
+}
+
+function filterLibrary(filter) {
+    // Обновляем активный фильтр
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.classList.remove('active');
+    });
+    document.querySelector(`.filter-chip[data-filter="${filter}"]`).classList.add('active');
+    
+    // Перерисовываем карточки
+    renderLibraryCards(filter);
+}
+
+function openLink(url) {
+    if (url.includes('t.me')) {
+        tg.openTelegramLink(url);
+    } else {
+        tg.openLink(url);
+    }
+}
+
 // ====== ИНИЦИАЛИЗАЦИЯ ======
 document.addEventListener('DOMContentLoaded', function() {
     console.log('MUSE Mini App загружена');
@@ -346,4 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Показываем welcome screen при загрузке
     showScreen('welcomeScreen');
+    
+    // Активируем секцию теста по умолчанию
+    document.getElementById('testSection').classList.add('active');
 });
