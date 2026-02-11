@@ -616,6 +616,8 @@ const libraryData = {
 
 // ====== ФУНКЦИИ НАВИГАЦИИ ======
 function switchTab(tabName) {
+    console.log('switchTab вызвана с:', tabName);
+    
     // Обновляем активный таб
     document.querySelectorAll('.tab').forEach(tab => {
         tab.classList.remove('active');
@@ -638,7 +640,10 @@ function switchTab(tabName) {
             window.libraryInitialized = true;
         }
     } else if (tabName === 'archetype') {
-        document.getElementById('archetypeSection').classList.add('active');
+        console.log('Переключаемся на archetype');
+        const archetypeSection = document.getElementById('archetypeSection');
+        console.log('archetypeSection найдена:', archetypeSection);
+        archetypeSection.classList.add('active');
         document.querySelector('.navigation-tabs').classList.remove('tabs-hidden');
         showArchetypeSection();
     }
@@ -701,16 +706,24 @@ function openLink(url) {
 
 // ====== МОЙ ТИПАЖ ======
 function showArchetypeSection() {
+    console.log('showArchetypeSection вызвана');
     const savedArchetype = localStorage.getItem('muse_archetype');
+    console.log('Saved archetype:', savedArchetype);
+    
     const promptElement = document.getElementById('archetypePrompt');
     const pageElement = document.getElementById('archetypePage');
     
+    console.log('promptElement:', promptElement);
+    console.log('pageElement:', pageElement);
+    
     if (!savedArchetype) {
         // Показываем приглашение пройти тест
+        console.log('Показываем prompt - тест не пройден');
         promptElement.style.display = 'flex';
         pageElement.style.display = 'none';
     } else {
         // Показываем страницу типажа
+        console.log('Показываем страницу типажа:', savedArchetype);
         promptElement.style.display = 'none';
         pageElement.style.display = 'block';
         renderArchetypePage(savedArchetype);
@@ -799,9 +812,10 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('MUSE Mini App загружена');
     console.log('Telegram WebApp version:', tg.version);
     
-    // Только секция теста активна; библиотека скрыта
+    // Только секция теста активна; библиотека и типаж скрыты
     document.getElementById('testSection').classList.add('active');
     document.getElementById('librarySection').classList.remove('active');
+    document.getElementById('archetypeSection').classList.remove('active');
     
     showScreen('welcomeScreen');
     updateTabBarVisibility('welcomeScreen');
