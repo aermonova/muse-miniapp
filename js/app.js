@@ -230,6 +230,9 @@ function showFirstQuestion() {
     currentQuestionIndex = 0;
     answers = [];
     showQuestion(currentQuestionIndex);
+    
+    // Трекинг начала теста (не блокирует основную логику)
+    trackEvent('test_start', { total_questions: questions.length });
 }
 
 // ====== ОТОБРАЖЕНИЕ ВОПРОСА ======
@@ -289,6 +292,13 @@ function selectAnswer(value) {
     if (isAnimating) return;
     
     answers[currentQuestionIndex] = value;
+    
+    // Трекинг шага теста (не блокирует переход к следующему вопросу)
+    trackEvent('test_step', { 
+        step: currentQuestionIndex + 1, 
+        total_steps: questions.length,
+        answer: value 
+    });
     
     if (currentQuestionIndex < questions.length - 1) {
         currentQuestionIndex++;
@@ -359,6 +369,13 @@ function showResult() {
         type: resultType,
         title: result.title
     };
+    
+    // Трекинг завершения теста (в самом конце, не блокирует показ результата)
+    trackEvent('test_complete', { 
+        result: resultType,
+        title: result.title,
+        total_questions: questions.length 
+    });
 }
 
 // ====== ДЕЙСТВИЯ С РЕЗУЛЬТАТОМ ======
@@ -689,6 +706,10 @@ function switchTab(tabName) {
         console.log('archetypeSection найдена:', archetypeSection);
         archetypeSection.classList.add('active');
         document.querySelector('.navigation-tabs').classList.remove('tabs-hidden');
+        
+        // Трекинг открытия "Мой типаж"
+        trackEvent('my_type_open');
+        
         showArchetypeSection();
     }
 }
@@ -822,6 +843,9 @@ function shareArchetypeResult() {
     const archetype = archetypeData[savedArchetype];
     if (!archetype) return;
     
+    // Трекинг клика "Поделиться"
+    trackEvent('share_click', { archetype: savedArchetype });
+    
     const shareText = `✨ Я прошла тест типажей MUSE и узнала, что я — ${archetype.name}! ${archetype.tagline}\n\nПройди тест сама: @musenew_bot 💫`;
     
     // Копируем в буфер обмена
@@ -842,6 +866,9 @@ function openArchetypePost() {
 }
 
 function retakeTest() {
+    // Трекинг клика "Пройти заново"
+    trackEvent('retake_test');
+    
     // Очищаем результат
     localStorage.removeItem('muse_archetype');
     
