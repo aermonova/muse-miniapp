@@ -25,6 +25,47 @@ try {
     console.warn('⚠️ Не удалось инициализировать аналитику:', error);
 }
 
+// Функция создания/обновления пользователя (защищена от ошибок)
+async function upsertUser() {
+    if (!analyticsEnabled || !supabaseClient) return;
+    
+    try {
+        const userData = tg.initDataUnsafe?.user || {};
+        
+        if (!userData.id) {
+            console.warn('⚠️ Нет Telegram user ID');
+            return;
+        }
+        
+        // Сначала проверяем, существует ли пользователь
+        const { data: existingUser } = await supabaseClient
+            .from('users')
+            .select('telegram_id, source')
+            .eq('telegram_id', userData.id)
+            .single();
+        
+        if (existingUser) {
+            // Пользователь существует - обновляем только last_active_at
+            await supabaseClient.from('users')
+                .update({ last_active_at: new Date().toISOString() })
+                .eq('telegram_id', userData.id);
+            console.log('👤 Активность обновлена:', userData.id);
+        } else {
+            // Новый пользователь - создаём с source='miniapp'
+            await supabaseClient.from('users').insert({
+                telegram_id: userData.id,
+                username: userData.username || null,
+                first_name: userData.first_name || null,
+                last_active_at: new Date().toISOString(),
+                source: 'miniapp'
+            });
+            console.log('👤 Новый пользователь создан:', userData.id);
+        }
+    } catch (error) {
+        console.warn('⚠️ Ошибка обновления пользователя:', error);
+    }
+}
+
 // Функция трекинга событий (полностью защищена от ошибок)
 async function trackEvent(eventType, eventData = {}) {
     if (!analyticsEnabled || !supabaseClient) return;
@@ -32,6 +73,7 @@ async function trackEvent(eventType, eventData = {}) {
     try {
         const userData = tg.initDataUnsafe?.user || {};
         
+        // Записываем событие
         await supabaseClient.from('events').insert({
             user_id: userData.id || null,
             event_type: eventType,
@@ -39,6 +81,13 @@ async function trackEvent(eventType, eventData = {}) {
             platform: 'miniapp',
             created_at: new Date().toISOString()
         });
+        
+        // Обновляем last_active_at пользователя
+        if (userData.id) {
+            await supabaseClient.from('users')
+                .update({ last_active_at: new Date().toISOString() })
+                .eq('telegram_id', userData.id);
+        }
         
         console.log('📊 Событие записано:', eventType);
     } catch (error) {
@@ -885,6 +934,9 @@ function retakeTest() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('MUSE Mini App загружена');
     console.log('Telegram WebApp version:', tg.version);
+    
+    // Создаём/обновляем пользователя в базе
+    upsertUser();
     
     // Трекинг открытия Mini App
     trackEvent('miniapp_open');
