@@ -7,6 +7,46 @@ tg.expand();
 // tg.setBackgroundColor('#F5F1ED');
 // tg.setHeaderColor('#F5F1ED');
 
+// ====== АНАЛИТИКА (SUPABASE) ======
+let supabaseClient = null;
+let analyticsEnabled = false;
+
+// Инициализация Supabase (с защитой от ошибок)
+try {
+    if (window.supabase && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(
+            'https://ltqelpbiivubjcqjoweg.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cWVscGJpaXZ1YmpjcWpvd2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MzM0NzAsImV4cCI6MjA4NjQwOTQ3MH0.THv2lqazDTxP3zMSW7lrRGNUerTsS028x15gmQ3Ji6c'
+        );
+        analyticsEnabled = true;
+        console.log('✅ Аналитика включена');
+    }
+} catch (error) {
+    console.warn('⚠️ Не удалось инициализировать аналитику:', error);
+}
+
+// Функция трекинга событий (полностью защищена от ошибок)
+async function trackEvent(eventType, eventData = {}) {
+    if (!analyticsEnabled || !supabaseClient) return;
+    
+    try {
+        const userData = tg.initDataUnsafe?.user || {};
+        
+        await supabaseClient.from('events').insert({
+            user_id: userData.id || null,
+            event_type: eventType,
+            event_data: eventData,
+            platform: 'miniapp',
+            created_at: new Date().toISOString()
+        });
+        
+        console.log('📊 Событие записано:', eventType);
+    } catch (error) {
+        console.warn('⚠️ Ошибка трекинга:', error);
+        // Ошибки трекинга НЕ должны ломать приложение!
+    }
+}
+
 // ====== ДАННЫЕ ТЕСТА ======
 const questions = [
     {
@@ -636,6 +676,9 @@ function switchTab(tabName) {
         document.getElementById('librarySection').classList.add('active');
         document.querySelector('.navigation-tabs').classList.remove('tabs-hidden');
         
+        // Трекинг открытия библиотеки
+        trackEvent('library_open');
+        
         if (!window.libraryInitialized) {
             initLibrary();
             window.libraryInitialized = true;
@@ -698,6 +741,9 @@ function filterLibrary(filter) {
 }
 
 function openLink(url, title = '') {
+    // Трекинг клика по карточке библиотеки
+    trackEvent('library_click', { url, title });
+    
     if (url.includes('t.me')) {
         tg.openTelegramLink(url);
     } else {
@@ -812,6 +858,9 @@ function retakeTest() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('MUSE Mini App загружена');
     console.log('Telegram WebApp version:', tg.version);
+    
+    // Трекинг открытия Mini App
+    trackEvent('miniapp_open');
     
     // Только секция теста активна; библиотека и типаж скрыты
     document.getElementById('testSection').classList.add('active');
